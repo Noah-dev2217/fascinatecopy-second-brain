@@ -1,215 +1,207 @@
-# Custom GPT Builder — Project Instructions
+# CLAUDE.md — Vault Schema
 
-You are an automated pipeline that turns a user's raw idea into a production-grade Custom GPT package ready to upload into ChatGPT's Custom GPT creator.
+This file is the **schema** for your personal second brain. It tells Claude Code how this vault is organized, what conventions to follow, and what operations to support.
 
-## The pipeline you execute
+You should read this file. So should any Claude Code session you open in this vault. The conventions here are intentionally explicit — they're what keeps a wiki useful over months and years instead of rotting into a junk drawer.
 
-You replicate the "Master Custom GPTs Challenge" 4-day manual process created by Daron Vener, originally designed around three ChatGPT GPTs: Operationalizer GPT, KB Master Builder GPT, and Metaprompt GPT. Those GPTs cannot be called via API, so you reproduce their exact behavior and methodology using the prompts in `prompts/` — built from their actual system prompts and upgraded for 2026 model capabilities.
+---
 
-**CRITICAL — DEPTH REQUIREMENT:** The knowledge report (Day 1) is the foundation everything builds on. It must be DEEPLY granular — 3,000-6,000 words, with worked examples for every framework, pass/fail examples for every quality criterion, and concrete examples for every forbidden behavior. A shallow knowledge report cascades into a shallow GPT. When in doubt, go deeper.
+## What this vault is
 
-The pipeline has 4 sequential steps. Each step's output is the next step's input.
+A personal knowledge base built on the **Karpathy LLM Wiki pattern**. Two files in this vault explain the pattern in full:
 
-| Step | Prompt file | Produces |
-|------|-------------|----------|
-| Day 1 — Purpose + Knowledge Report | `prompts/01-purpose-knowledge.md` | `purpose.md`, `knowledge-report.md` |
-| Day 2 — Operationalized Process | `prompts/02-operationalizer.md` | `process.md` |
-| Day 3 — Custom Knowledge Base + Variables | `prompts/03-kb-master.md` | `knowledge-base.md`, `variables.md` |
-| Day 4 — System Prompt | `prompts/04-metaprompt.md` | `system-prompt.md` |
+- `karpathy-llm-wiki-idea.md` — the canonical spec (the source of truth)
+- `karpathy-llm-wiki-second-brain.md` — a walkthrough with concrete examples
 
-After Day 4 you assemble the final deliverables (see "Final deliverables" below).
+Read those first if you haven't. Everything below assumes you understand the basic shape.
 
-## Two build modes
+---
 
-This project supports two build modes selected by the slash command used.
+## Architecture (three layers)
 
-### Mode 1 — Single GPT Build (`/build-gpt`)
-Builds one standalone Custom GPT following the 4-day Daron Vener methodology. Everything in this document applies to this mode.
+| Layer | Folder | Who owns it |
+|---|---|---|
+| **Raw sources** | `raw/` | The user. Immutable. Claude Code reads but never modifies. |
+| **The wiki** | `wiki/` | Claude Code. Creates, links, and maintains pages. |
+| **The schema** | `CLAUDE.md` (this file) | Co-evolved by user + Claude Code over time. |
 
-### Mode 2 — Multi-Agent Team Build (`/build-team`)
-Builds a coordinated team of 2-5 specialized Custom GPTs designed to work together in sequence. Each agent gets its own complete 4-day pipeline run. Additionally produces:
-- A **Context Injection Template** — a structured client brief the user fills in once per project, shared across all agents
-- A **Handoff Protocol** — defines exactly what each agent outputs and what the next agent expects as input
-- A **Team Worksheet** — master audit log covering all agents
-
-**How `/build-team` works:**
-1. Parse the idea — identify how many agents are needed, what each one does, and how they connect
-2. Name the team — generate a team slug (e.g. `authority-book-ghostwriter-team`)
-3. Create team folder — `builds/<date>/<team-slug>/` with subfolders per agent (`agent-1-<name>/`, `agent-2-<name>/`, etc.)
-4. Run the full 4-day pipeline for **Agent 1** (the first agent in the chain) — Knowledge Report, Process, Knowledge Base, System Prompt
-5. **PAUSE — show the user Agent 1's outputs and wait for their reply.** This is the hybrid pause. Acceptable replies: `continue`, `regenerate agent 1 with [feedback]`, or `stop`.
-6. Once user replies `continue`, **auto-complete all remaining agents** (Agent 2, 3, etc.) without further pauses.
-7. Generate `context-template.md` — structured Markdown brief the user fills in once per project, shared across all agents
-8. Generate `handoff-protocol.md` — defines exactly what each agent outputs and what the next agent expects as input
-9. Generate `SETUP.md` — step-by-step guide for deploying all agents in ChatGPT
-10. Generate `team-worksheet.md` — master audit log covering all agents
-11. Print deployment summary
-
-**Multi-agent quality rules:**
-- Every agent must have its own complete Knowledge Base — agents do NOT share a single KB
-- Every agent's system prompt must tell users to paste the Context Injection Template at the start of every session
-- Every agent's system prompt must include its exact input format and output format per the Handoff Protocol
-- All agent system prompts follow the Metaprompt PROMPT_TEMPLATE format exactly — same as single GPT builds
-- The smart index worksheet approach applies to the team worksheet
-- The hybrid pause happens ONCE — only between Agent 1 and Agent 2. Agents 2 onward auto-complete.
-
-## How to run the pipeline
-
-When the user invokes `/build-gpt` (see `.claude/commands/build-gpt.md`) with an idea:
-
-1. **Create a build folder.** Slugify the idea into a kebab-case name (e.g. "a GPT for resume feedback" → `resume-feedback-gpt`). Folder path: `builds/<today's ISO date>/<slug>/` (e.g. `builds/2026-04-23/resume-feedback-gpt/`).
-2. **Initialize the worksheet.** Copy `templates/worksheet-template.md` to the build folder as `worksheet.md`. Fill the header (GPT name, date, source idea).
-3. **Run each day sequentially.** For each day:
-   - Read the prompt file in `prompts/`.
-   - Substitute the variables (the previous days' outputs).
-   - **For Day 1 specifically:** Before writing the Knowledge Report, conduct 5-10 web searches to gather real, current, expert-level domain knowledge. Search for: industry frameworks, best practices, quality benchmarks, common mistakes, expert heuristics, and real terminology. Synthesize findings into the report. This is the critical research phase that separates a deep knowledge report from a shallow one.
-   - Generate the output — you ARE the model executing the prompt.
-   - Write the output to its file in `builds/<slug>/`.
-   - Append the output to the matching section of `worksheet.md` (this is the audit log).
-4. **Run fully automatically.** Do not pause for user confirmation between days. Only stop if you genuinely cannot proceed (e.g. the idea is incoherent).
-5. **Assemble final deliverables** (see next section).
-6. **Print a summary** to the user: what was built, where the files are, and the 3 things they need to do in ChatGPT's GPT Builder UI.
-
-## Final deliverables (at end of pipeline)
-
-In `builds/<date>/<slug>/` you must produce:
-
-- `worksheet.md` — the full audit log with every step's output (the "GPT Building Blocks Worksheet" from the original challenge)
-- `knowledge-base.txt` — the Custom Knowledge Base as a plain `.txt` file. **This is the file the user uploads to ChatGPT's Custom GPT creator under "Knowledge".**
-- `system-prompt.md` — the final system prompt. **This goes into ChatGPT's "Instructions" field.**
-- `gpt-config.md` — a one-page cheat sheet with:
-  - Recommended GPT name
-  - Description (1-2 sentences for the ChatGPT description field)
-  - 3 conversation starters
-  - Recommended capability toggles (Web Search, Code Interpreter, etc. — decide based on what the GPT actually needs)
-  - Step-by-step: "paste X into field Y in the GPT Builder UI"
-
-## Quality rules — do not violate these
-
-1. **No placeholders in final outputs.** If you write `[INSERT X HERE]` in the knowledge base or system prompt, you have failed. Fill every variable with real content derived from the user's idea.
-
-2. **THE WORKSHEET IS A SMART INDEX — NOT A FULL DUPLICATE.**
-
-   Full content lives in the individual files. The worksheet contains the right mix of full content and highlights to be a complete audit trail without duplicating heavy text.
-
-   **Always copy IN FULL into the worksheet:**
-   - Purpose Statement (200-400 words — short, always include)
-   - Set of Variables (short — Day 4 depends on them)
-   - System Prompt (500-900 words — goes directly into ChatGPT)
-   - Conversation Starters
-   - Deployment Format Summary from the Process
-   - Open Questions / Knowledge Gaps from the Knowledge Report
-   - Web Research Log — every search query + one-sentence finding
-
-   **Include as KEY HIGHLIGHTS ONLY (not full content):**
-   - Knowledge Report — concept names list, framework names list, criterion names, forbidden behavior names. Full content in `knowledge-report.md`.
-   - Process — task table with name, 5-8 word description, quality check count per task. Full content in `process.md`.
-   - Knowledge Base — section table with titles and word counts. Full content in `knowledge-base.md` and `knowledge-base.txt`.
-
-   This cuts output tokens from ~63,000 to ~15,000 per run — allowing 4 GPT builds per Max 5x session window instead of 1.
-
-3. **START A FRESH SESSION PER GPT BUILD.** Each `/build-gpt` run should start with minimal context. After completing a build, the user should type `/exit` and relaunch `claude` before the next build. This prevents accumulated context from consuming the token window.
-
-5. **The system prompt must follow the PROMPT_TEMPLATE format exactly.** It uses: CONTEXT, GOAL, INSTRUCTIONS (numbered step-by-step), STYLE, TONE, FORMAT, INPUT VARIABLES, CONSTRAINTS, CORE AIM. This is Daron Vener's Metaprompt GPT format — do not deviate from it.
-
-6. **The system prompt opens with "Hey ChatGPT, you are [NAME]..."** followed by a one-sentence role description. This is the exact format Metaprompt GPT produces.
-
-7. **The knowledge base must be retrieval-optimized.** Structured with clear sections, hierarchical headings, self-contained chunks, bullet points where clarity improves. Written for AI execution, not human inspiration.
-
-8. **The operationalized process must use the Task format.** Each task includes: Instructions, Expert Insights, and Quality Criteria. This is the exact format Operationalizer GPT produces.
-
-9. **DEPTH IS NON-NEGOTIABLE.** The knowledge report must be 3,000-6,000 words with worked examples. The knowledge base must be 2,000-5,000 words. The process must have substantial tasks (150-300 words each). Shallow outputs are a failure.
-
-10. **No fabricated expertise.** If the user's domain requires real-world facts you're uncertain about, state the assumption in the knowledge report and flag it under "Open Questions."
-
-11. **Worked examples are mandatory.** Every framework in the knowledge report must have at least 2 worked examples. Every quality criterion must have pass/fail examples. Every forbidden behavior must have a concrete example of the failure.
-
-## Output style inside the worksheet
-
-- Use Markdown consistently (ATX headings, `-` bullets, fenced code blocks).
-- Each day's section starts with a `## Day N — <Name>` heading.
-- Under each section, include a small metadata block: `Generated: <ISO date>`, `Source prompt: prompts/0N-*.md`.
-- Keep the worksheet readable as a human audit trail — this is the "paper trail" the user asked for.
-
-## High-volume operation (50 GPTs/day target)
-
-This project is designed to run up to 50 pipeline executions per day. The following rules apply to protect cost, prevent data loss, and keep runs organized at high volume.
-
-### Daily run tracking
-
-At the start of every `/build-gpt` run, you must:
-
-1. Check if `builds/run-log.md` exists. If not, create it.
-2. Read the log and count how many runs have been completed **today** (matching today's ISO date).
-3. Write a new entry to `run-log.md` in this format:
+### Vault root structure
 
 ```
-| <ISO datetime> | <slug> | <status: started/completed/failed> | ~$<estimated cost> |
+your-vault/
+├── CLAUDE.md                                ← This file
+├── karpathy-llm-wiki-idea.md                ← Canonical spec
+├── karpathy-llm-wiki-second-brain.md        ← Walkthrough
+├── raw/                                     ← Source documents (immutable)
+│   └── assets/                              ← Images, attachments
+└── wiki/                                    ← LLM-maintained knowledge
+    ├── index.md                             ← Catalog of all pages
+    ├── log.md                               ← Operation history
+    ├── hot.md                               ← Recent-context cache
+    ├── concepts/                            ← Transferable patterns
+    ├── entities/                            ← People, organizations, tools
+    ├── projects/                            ← Specific projects
+    ├── sources/                             ← Manifest pages (one per source)
+    └── workflows/                           ← Commands, scripts, processes
 ```
 
-4. At the end of a completed run, update the entry status to `completed`.
-5. If the user types `/status` at any point, read `run-log.md` and print:
-   - Runs completed today
-   - Runs completed this week
-   - Estimated total cost today
-   - Estimated total cost this week
-   - Last 5 builds with their slugs and status
+---
 
-### Cost awareness per run
+## Operations
 
-After every completed run, estimate and log the token cost using these approximations:
-- Day 1 (with web searches): ~$0.15
-- Day 2: ~$0.08
-- Day 3: ~$0.12
-- Day 4: ~$0.05
-- Overhead: ~$0.02
-- **Total per run: ~$0.42 (smart index worksheet)**
+There are exactly three operations Claude Code performs on this vault.
 
-Print the estimated cost in the summary at the end of every run. Running total for the day is tracked in `run-log.md`.
+### 1. Ingest
 
-### Rate limit protection
+User drops a new source into `raw/<folder>/` and triggers ingest. Claude Code:
 
-If a run fails mid-way due to a rate limit or credit error:
-1. Save all outputs generated so far to the build folder — do not lose partial work.
-2. Write the failure and the last completed day to `run-log.md` with status `failed — stopped at Day N`.
-3. Tell the user exactly which day failed and how to resume: "Run `/resume-gpt <slug>` to continue from Day N."
-4. Do not restart from Day 1 — partial work is preserved.
+1. Reads every file in the folder (recursively). Skips unreadable binaries but notes them in the source manifest.
+2. Treats the entire folder as ONE source, ONE ingest, ONE log entry.
+3. Asks clarifying questions in ONE batch BEFORE writing anything (or says explicitly if none are needed).
+4. Decides page granularity per the Conventions section below.
+5. Writes wiki pages — both new ones AND updates to existing pages this source touches.
+6. Looks for emergent cross-project patterns. Creates or updates concept pages that abstract shared patterns across multiple projects.
+7. Updates `wiki/index.md` with new entries.
+8. Appends entry to `wiki/log.md` in the format: `## [YYYY-MM-DD] ingest | <project name>`
+9. Updates `wiki/hot.md` to reflect recent context.
+10. Commits with message: `ingest: <project name>`.
+11. Reports back: pages CREATED, pages UPDATED, new concept pages, granularity decisions, anything noticed but not acted on.
 
-### Resuming a failed run
+### 2. Query
 
-When the user types `/resume-gpt <slug>`:
-1. Read the build folder for `<slug>` and identify which files already exist.
-2. Determine the last completed day based on what files are present.
-3. Continue from the next day without redoing completed work.
-4. Update `run-log.md` with the resumed status.
+User asks a question against the wiki. Claude Code:
 
-### Build folder organization at scale
+1. Reads `wiki/hot.md` first — often enough on its own.
+2. If not, reads `wiki/index.md` to find relevant pages.
+3. Reads those specific pages — does not grep the whole vault unnecessarily.
+4. Only searches `raw/` if the wiki doesn't have the answer (raw is verbose; the wiki is distilled).
+5. Synthesizes an answer with citations.
+6. **Optional but valuable**: high-quality query results get filed back into the wiki as new pages, so explorations compound the same way ingests do.
 
-At 50 GPTs/day, the `builds/` folder will fill up quickly. Organize builds by date:
+### 3. Lint
 
-```
-builds/
-  2026-04-23/
-    resume-reviewer-gpt/
-    healthcare-docs-gpt/
-    ...
-  2026-04-24/
-    ...
-  run-log.md
-```
+Periodically (weekly or on demand), Claude Code health-checks the wiki:
 
-Create the date subfolder automatically on each run using today's ISO date.
+- Contradictions between pages
+- Stale claims superseded by newer sources
+- Orphan pages with no inbound links
+- Important concepts mentioned but lacking their own page
+- Missing cross-references
+- Data gaps that could be filled by a web search
 
-## When things go wrong
+Reports findings and asks user which to act on. Never silently rewrites.
 
-- If the user's idea is too vague (under ~10 words and ambiguous): write a purpose statement using the template with reasonable assumptions, explicitly list those assumptions in the worksheet under `## Assumptions`, and continue. Do not stop to ask.
-- If a day's output is clearly broken (e.g. you wrote a process that ignores the knowledge report): regenerate that day's output once before moving on. Note the regeneration in the worksheet.
-- If you hit a credit/rate limit error: follow the Rate limit protection procedure above. Do not lose partial work.
-- If you hit a genuine blocker, write what you got so far, save it, and surface the blocker to the user at the end with a clear next step.
+---
 
-## Do not
+## Ingest trigger (shorthand)
 
-- Do not try to call the ChatGPT GPTs at those `chatgpt.com/g/...` URLs. They are UI-only and not automatable. You replicate their behavior via the prompts in `prompts/`.
-- Do not ask the user to switch to another GPT, open a browser, or do anything between steps. Full automation is the contract.
-- Do not write the `.txt` knowledge base as a wall of prose. It must be chunked and structured.
-- Do not restart a failed run from Day 1. Always resume from the last completed day.
+When user says `ingest raw/<folder>` (optionally with a one-line description), run the full ingest protocol above. No long prompt needed — the protocol lives here.
+
+If the user gives a description, use it as context. If not, infer purpose from the files and state the inference in the report so the user can correct it.
+
+---
+
+## Conventions
+
+These are the rules that govern wiki pages. They were learned through real ingests. **Each one solves a real problem. Don't drop them without understanding why.**
+
+### Granularity & structure
+
+- **Granularity: Balanced.** Page when substantial or recurring. Split when unskimmable. Aim for 10–30 pages per source as a sanity range; outside that range, stop and discuss with the user before writing.
+- **Linking: Moderate.** Link the first meaningful mention of any entity/concept/tool. Dangling links (links to pages that don't exist yet) are allowed as signals for future creation.
+- **Folder structure: subfoldered.** Use the standard subfolders (`concepts/`, `entities/`, `projects/`, `sources/`, `workflows/`). Per-project subfolders allowed when a project has substantial internal structure (e.g. pipeline stages, agent roles). Don't force a per-project subfolder on every project.
+
+### Frontmatter
+
+Every wiki page gets YAML frontmatter with at minimum:
+- `status` (e.g. `in-progress`, `done`, `archived`, `deprecated`, `planning`)
+- `source_file` (path to the raw file that produced this page)
+
+Additional fields encouraged: `tags`, `date`, `source_count` for query convenience via Dataview plugin.
+
+### Source pages
+
+- **One source page per ingested folder**, named after the project. Acts as a manifest pointing back to the raw files.
+- **Name collision rule**: when a project page and its source page share a name, suffix the source page with `-source`. The project page is canonical (synthesized knowledge); the source page is the manifest.
+
+### Logging
+
+Format: `## [YYYY-MM-DD] <operation> | <title>`
+
+Example: `## [2026-06-10] ingest | LinkedIn Lead Capture v1.1`
+
+This makes the log grep-able with `grep "^## \[" wiki/log.md`.
+
+### Source contradictions vs upstream corrections
+
+- **Source contradictions** — when a raw source contradicts itself internally — capture under `## Known inconsistencies in the source` on the source page. Raw is immutable; the contradiction is a fact about the artifact. Flag as a candidate `lint` item.
+- **Upstream corrections** — when source notes correct an EXTERNAL (non-ingested) document — capture under `## Corrections to the upstream blueprint` on the project page. Distinct from internal contradictions.
+
+### Watch items
+
+Operational gotchas (silent-failure risks, hidden coupling, things that break if changed) get flagged under `## Watch items` on BOTH the project page AND the source page, so they surface from either entry point.
+
+A watch item is specifically a *gotcha*. Feature gaps and known limitations belong under `## Known limitations` instead.
+
+### Convention retrofits (meta-rule)
+
+Whenever a Convention is added or changed, audit all existing pages that fall under it. If any pages don't conform, retrofit them in a separate commit titled `retrofit: <description>` within the same session. **Never leave convention debt.**
+
+### Scope discipline on git operations
+
+Ingest operations produce exactly **one commit** (the ingest commit). Do not rebase, squash, split commits, rewrite history, or perform any git operation beyond `git add` and `git commit` during an ingest. If repo hygiene issues are noticed (history that could be cleaner, files that shouldn't be committed, etc.), surface them as observations in the report — DO NOT act on them.
+
+### Secret handling
+
+When ingesting code projects containing credentials:
+- Surface them in the report under `## Secrets detected` with file:line references.
+- Do NOT remove them from the raw source (raw is immutable).
+- Do NOT include the secret VALUES in any wiki page — only that a secret exists at `<file>:<line>`.
+- The user handles rotation outside the vault.
+
+### Command grouping
+
+When a project has multiple related slash commands or scripts that share lifecycle (e.g. `build`/`resume`/`status` acting on the same artifact), group them into lifecycle pages. When commands are unrelated, keep them separate.
+
+### Supersession (versioned sources)
+
+When a newer version of a project is ingested (e.g. v1.2 of a project where v1.1 already exists):
+- Do NOT delete or modify the old source page.
+- Create the new source page.
+- Update the project page to: (a) point at the new source as canonical, (b) preserve the old source as "previous version", (c) note what changed between versions.
+- Both source pages remain in the wiki — supersession, not replacement.
+
+### Deprecation
+
+When a source is marked deprecated:
+- Project page frontmatter: `status: deprecated`.
+- Project page opens with `## Deprecation` section near the top, containing: deprecation date, stated reason (verbatim), and "Replaced by:" field if applicable.
+- Project page ends with `## Patterns worth salvaging` listing reusable architectural ideas, prompt patterns, or workflow structures from the deprecated project.
+- Concept/entity/tool pages this source touches still get updated normally — deprecation of the project doesn't deprecate the concepts it used.
+- `hot.md` mentions the ingest but does NOT elevate the deprecated project to active context.
+
+### Source gaps
+
+When a source file references another file that is NOT present in the raw folder, capture under `## Source gaps` on the source page (not the project page).
+
+Format: `` - `<filename>` — referenced by <citing-file>, absent from folder. Notes: <what partial coverage exists, if any>. ``
+
+Do NOT create stub wiki pages for missing files. Do NOT fabricate their content. The gap itself is the record.
+
+### Verify before flagging
+
+When the user claims something appears in the raw source (errors, inconsistencies, contradictions, references), verify against the actual raw file before flagging it on a wiki page. If the claim doesn't match the source, say so and ask — do not invent a flag to satisfy the request.
+
+---
+
+## Co-evolution
+
+These conventions are a **seed**, not a finished product. They were learned through ingesting real projects and will need to evolve to match how you actually work.
+
+When you find yourself wishing the wiki worked differently:
+
+1. Tell Claude Code what you want changed.
+2. Lock it into this `CLAUDE.md` under Conventions.
+3. The convention-retrofit meta-rule will keep your wiki consistent as it evolves.
+
+Add conventions, modify them, remove ones that don't fit your work. This file is yours.
