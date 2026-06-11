@@ -29,13 +29,16 @@ After you're set up, customize your vault to fit how you work. The conventions a
 
 ---
 
-## The 30-minute happy path
+## The path
 
-Open these three files in order. Don't skip ahead.
+Open these files in order. Don't skip ahead.
 
 1. **`INSTALL.md`** — install prerequisites and create your vault (~15 minutes)
 2. **`FIRST_INGEST.md`** — drop in your first source and watch the wiki form (~15 minutes)
-3. **`template/CLAUDE.md`** — read this once you have a working vault, so you understand the conventions
+3. **`USING_IT.md`** — the daily habits, weekly rhythm, and reusable prompts that turn this into a real second brain (read once, reference often)
+4. **`template/CLAUDE.md`** — the conventions the agent follows. Read once you have a working vault so you understand what's been baked in.
+
+Files 1–2 get you running. File 3 is what determines whether the vault actually compounds value over time or sits unused after a week.
 
 ---
 
@@ -46,6 +49,7 @@ fascinatecopy-second-brain/
 ├── README.md           ← you are here
 ├── INSTALL.md          ← step-by-step install
 ├── FIRST_INGEST.md     ← hand-held first ingest
+├── USING_IT.md         ← daily habits and reusable prompts
 ├── template/           ← files that get copied into your vault
 │   ├── CLAUDE.md
 │   ├── karpathy-llm-wiki-idea.md
