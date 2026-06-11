@@ -170,29 +170,17 @@ These are your two most important files going forward.
 
 ## What's next
 
-**You have a working second brain with one source ingested.** Three things to do over the next few weeks:
+**You have a working second brain with one source ingested.**
 
-### 1. Ingest more sources
+Open `USING_IT.md` next. It covers the daily habits, the project-kickoff query pattern, the end-of-project ingest, the snippet for pointing other Claude Code projects at this vault, and a library of reusable prompts. That's where this stops being "a folder with some markdown files" and starts being something you actually use.
 
-The wiki compounds with each source. The cross-project linking only kicks in after the second source. To see it work, your next ingest should touch at least one tool or concept already in the wiki.
+A few quick things you can do right now while it's fresh:
 
-Use the same one-line trigger: `ingest raw/<folder> — <description>`.
+- Open `wiki/hot.md` — see what Claude Code put in your recent-context cache.
+- Open `wiki/index.md` — skim the catalog of pages from your first ingest.
+- Run `git log --oneline` — you should have at least two commits (the scaffold and your first ingest).
 
-### 2. Query your wiki
-
-When you're working on something and a question comes up — *"how did I handle X last time?"*, *"what were the deliverables for the Y project?"* — open Claude Code in the vault and ask:
-
-```
-Look in the wiki and tell me what we know about <X>. If there are connections to <Y> worth flagging, mention them.
-```
-
-This habit is the actual payoff. Stop re-searching the same things. Ask the wiki.
-
-### 3. Customize `CLAUDE.md` to fit how you work
-
-The conventions in `CLAUDE.md` are a starting seed. As you ingest more sources and find patterns you want handled differently, tell Claude Code, then lock the change into `CLAUDE.md` as a new convention.
-
-The convention-retrofit meta-rule means your existing pages stay consistent as the schema evolves.
+Then go read `USING_IT.md`.
 
 ---
 
